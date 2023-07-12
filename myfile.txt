@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>2.7.4</version>
+		<relativePath/> <!-- lookup parent from repository -->
+	</parent>
+	<groupId>com.babu</groupId>
+	<artifactId>personContact</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<name>personContact</name>
+	<description>Demo project for Spring Boot</description>
+	<properties>
+		<java.version>17</java.version>
+	</properties>
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-jpa</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+
+		
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+		</plugins>
+	</build>
+
+</project>
+.....................................................................................
+
+package com.babu.controller;
+
+
+
+import org.springframework.http.HttpStatus;
+
+import org.springframework.http.ResponseEntity;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.babu.details.Person;
+import com.babu.services.ContactService;
+
+import java.util.*;
+
+@RestController
+public class ContactController {
+
+    @Autowired
+    private ContactService contactService;
+
+    @RequestMapping("/contact/save")
+    protected ResponseEntity<Person> savedetails(@RequestBody Person info) {
+        Person contact = contactService.store(info);
+
+        return new ResponseEntity<>(contact, HttpStatus.CREATED);
+    }
+
+    @RequestMapping("/contact/retrieve/{id}")
+    protected Optional<Person> findById(@PathVariable Long id) {
+
+        Optional<Person> contacts = contactService.findContactById(id);
+
+        return contacts;
+    }
+
+
+}
+......................................................................
+package com.babu.details;
+
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+
+@Entity
+public class Person {
+
+	@Id
+	@GeneratedValue
+	private Long id;
+	
+	private String name;
+
+	private String mobile;
+
+	public Person() {
+	}
+
+	public Person(String name, String mobile) {
+		super();
+		this.name = name;
+		this.mobile = mobile;
+	}
+
+	public Long getId() {
+		return id;
+	}
+
+	public void setId(Long id) {
+		this.id = id;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public String getMobile() {
+		return mobile;
+	}
+
+	public void setMobile(String mobile) {
+		this.mobile = mobile;
+	}
+
+}
+.............................................................
+
+package com.babu.repository;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.babu.details.Person;
+
+
+public interface ContactRepository extends JpaRepository<Person, Long> {
+
+   
+}
+................................................................
+package com.babu.services;
+
+import java.util.*;
+
+import com.babu.details.Person;
+
+
+
+public interface ContactService {
+
+    Person store(Person info);//To save
+
+    Optional<Person> findContactById(Long id);//To Retrive
+
+}
+................................................................
+package com.babu.services;
+
+
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.babu.details.Person;
+import com.babu.repository.ContactRepository;
+
+import java.util.*;
+
+@Service
+public class ContactServiceImpl implements ContactService {
+	
+	@Autowired
+    private ContactRepository contactRepository;
+
+    @Override
+    public Person store(Person info) {
+        return contactRepository.save(info);
+    }
+
+    @Override
+    public Optional<Person> findContactById(Long id) {
+
+        return contactRepository.findById(id);
+    }
+
+
+}
+..............................................................
+spring.h2.console.enabled=true
+spring.datasource.url=jdbc:h2:mem:testdb
+spring.jpa.show-sql=true
+spring.jpa.hibernate.ddl-auto= update
+
